@@ -2,7 +2,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import studentsDAO from "../../dao/studentsDAO";
-import { StudentSignUpReq } from "../../interfaces";
 import isInstructor from "../../utils/validators/isInstructor";
 
 export default class AuthControllers {
@@ -65,7 +64,7 @@ export default class AuthControllers {
   }
 
   static async studentSignup(
-    req: StudentSignUpReq,
+    req: Request,
     res: Response,
     // next: NextFunction,
   ) {
@@ -75,7 +74,7 @@ export default class AuthControllers {
       // ----------------------------------------------------------
 
       if (
-        !isInstructor(req.isAuth, req.userData, req.body.data.instructorUserId)
+        !isInstructor(req.isAuth!, req.userData, req.body.data.instructorUserId)
       ) {
         return res
           .status(403)
