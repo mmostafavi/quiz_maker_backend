@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import "dotenv/config";
 import cors from "cors";
 
@@ -11,6 +11,11 @@ app.use(express.json());
 
 // app.options("*", (cors as (options: CorsOptions) => RequestHandler)());
 
-app.use("auth", authRoutes);
+app.use("/auth", authRoutes);
+// eslint-disable-next-line no-unused-vars
+app.use("/gg", (_req: Request, res: Response) => {
+  console.log("reached here");
+  res.send("hello");
+});
 
 export default app;
