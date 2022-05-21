@@ -18,10 +18,6 @@ export default class AuthControllers {
       // ----------------------------------------------------------
 
       const studentExist = await studentsDAO.doesStudentExist(username);
-      console.log(
-        "🚀 ~ file: authController.ts ~ line 24 ~ AuthControllers ~ studentSignIn ~ studentExist",
-        studentExist,
-      );
 
       if (!studentExist.exists) {
         res
@@ -108,8 +104,8 @@ export default class AuthControllers {
       const studentExist = await studentsDAO.doesStudentExist(username);
 
       if (!studentExist.exists) {
-        studentsDAO.createStudent(username, password, fName, lName);
-        res.status(200).send(`user with username of ${username} created`);
+        await studentsDAO.createStudent(username, password, fName, lName);
+        res.status(200).send(`student with username of ${username} created`);
       } else {
         res
           .status(500)
@@ -182,8 +178,52 @@ export default class AuthControllers {
     }
   }
 
-  static async instructorSingUp() {
-    // do sth
+  static async instructorSingUp(req: Request, res: Response) {
+    try {
+      // ----------------------------------------------------------
+      // *: validation for signing up
+      // ----------------------------------------------------------
+
+      if (
+        !isAdmin(
+          req.body.isAuth,
+          req.body.userData,
+          req.body.data.adminUsername,
+        )
+      ) {
+        return res
+          .status(403)
+          .send("this user doesn't have permission for creating an instructor");
+      }
+
+      const { username, password, fName, lName } = req.body.data;
+
+      // ----------------------------------------------------------
+      // password validation
+      // here....
+      // password validation
+      // ----------------------------------------------------------
+
+      // checking for availability of student
+      const instructorExists = await InstructorsDAO.doesInstructorExist(
+        username,
+      );
+
+      if (!instructorExists.exists) {
+        await InstructorsDAO.createInstructor(username, password, fName, lName);
+        res.status(200).send(`instructor with username of ${username} created`);
+      } else {
+        res
+          .status(500)
+          .send(`instructor with username of ${username} already exists`);
+      }
+
+      return null;
+    } catch (error) {
+      console.error(`Failed at instructorSignup. error: ${error}`);
+      res.status(500).send(error);
+      throw error;
+    }
   }
 
   static async adminSingIn(req: Request, res: Response) {

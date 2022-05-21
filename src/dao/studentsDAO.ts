@@ -1,6 +1,7 @@
 import { MongoClient, Db, Collection } from "mongodb";
 import _ from "lodash";
 import bcrypt from "bcryptjs";
+import { Student } from "../interfaces";
 
 let quizMakerDb: Db;
 let studentsCollection: Collection;
@@ -36,13 +37,14 @@ export default class StudentsDAO {
   ) {
     try {
       const hashedPassword = await bcrypt.hash(password, 12);
-      await studentsCollection.insertOne({
+      const studentDoc: Student = {
         authData: { username, password: hashedPassword },
         fName,
         lName,
         courses: [],
         questions: [],
-      });
+      };
+      await studentsCollection.insertOne(studentDoc);
     } catch (error) {
       console.error(`Failed to create student in createStudent: ${error}`);
       throw error;
