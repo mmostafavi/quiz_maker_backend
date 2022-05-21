@@ -5,7 +5,8 @@ const router = express.Router();
 
 router.route("/student/sign-in").post(AuthControllers.studentSignIn);
 router.post("/student/signup", AuthControllers.studentSignup);
-router.post("/instructor/sign-in", AuthControllers.instructorSignIn);
+router.route("/instructor/sign-in").post(AuthControllers.instructorSignIn);
 router.post("/instructor/signup", AuthControllers.instructorSingUp);
+router.route("/admin/sign-in").post(AuthControllers.adminSingIn);
 
 export default router;
