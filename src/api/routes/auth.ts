@@ -4,9 +4,9 @@ import AuthControllers from "../controllers/authController";
 const router = express.Router();
 
 router.route("/student/sign-in").post(AuthControllers.studentSignIn);
-router.post("/student/signup", AuthControllers.studentSignup);
+router.route("/student/signup").post(AuthControllers.studentSignup);
 router.route("/instructor/sign-in").post(AuthControllers.instructorSignIn);
-router.post("/instructor/signup", AuthControllers.instructorSingUp);
+router.route("/instructor/signup").post(AuthControllers.instructorSingUp);
 router.route("/admin/sign-in").post(AuthControllers.adminSingIn);
 
 export default router;

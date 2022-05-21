@@ -1,7 +1,7 @@
-export default function (isAuth: boolean, tokenData: any, userId: string) {
+export default function (isAuth: boolean, tokenData: any, username: string) {
   return (
     isAuth &&
-    tokenData.userId === userId &&
-    tokenData.tokenType === "instructor"
+    tokenData.username === username &&
+    tokenData.userType === "instructor"
   );
 }

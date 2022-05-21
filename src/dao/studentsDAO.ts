@@ -37,8 +37,7 @@ export default class StudentsDAO {
     try {
       const hashedPassword = await bcrypt.hash(password, 12);
       await studentsCollection.insertOne({
-        username,
-        password: hashedPassword,
+        authData: { username, password: hashedPassword },
         fName,
         lName,
         courses: [],

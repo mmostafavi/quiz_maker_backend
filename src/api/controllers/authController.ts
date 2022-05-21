@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import studentsDAO from "../../dao/studentsDAO";
 import isInstructor from "../../utils/validators/isInstructor";
+import isAdmin from "../../utils/validators/isAdmin";
 import InstructorsDAO from "../../dao/instructorsDAO";
 
 export default class AuthControllers {
@@ -77,10 +78,17 @@ export default class AuthControllers {
       // ----------------------------------------------------------
 
       if (
-        !isInstructor(
-          req.body.isAuth!,
-          req.body.userData,
-          req.body.data.instructorUserId,
+        !(
+          isInstructor(
+            req.body.isAuth,
+            req.body.userData,
+            req.body.data.instructorUsername,
+          ) ||
+          isAdmin(
+            req.body.isAuth,
+            req.body.userData,
+            req.body.data.instructorUsername,
+          )
         )
       ) {
         return res
@@ -99,7 +107,7 @@ export default class AuthControllers {
       // checking for availability of student
       const studentExist = await studentsDAO.doesStudentExist(username);
 
-      if (!studentExist) {
+      if (!studentExist.exists) {
         studentsDAO.createStudent(username, password, fName, lName);
         res.status(200).send(`user with username of ${username} created`);
       } else {
@@ -232,7 +240,7 @@ export default class AuthControllers {
         res.status(403).send(`User is not admin`);
       }
     } catch (err) {
-      console.error(`Failed at InstructorSignIn. error: ${err}`);
+      console.error(`Failed at AdminSignIn. error: ${err}`);
       res.status(500).send(err);
       throw err;
     }

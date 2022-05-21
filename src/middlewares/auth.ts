@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 const jwt = require("jsonwebtoken");
 
 export default function (req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.get("authorization");
+  const authHeader = req.get("Authorization");
   if (!authHeader) {
     req.body.isAuth = false;
     return next();
