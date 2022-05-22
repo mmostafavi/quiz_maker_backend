@@ -86,8 +86,50 @@ export default class CourseController {
     // do sth
   }
 
-  static async dropStudents() {
-    // do sth
+  static async dropStudents(req: Request, res: Response) {
+    try {
+      if (
+        !(
+          isInstructor(req.body.isAuth, req.body.userData) ||
+          isAdmin(req.body.isAuth, req.body.userData)
+        )
+      ) {
+        return res
+          .status(403)
+          .send(`This user does not have permission to drop students`);
+      }
+      const { courseId } = req.body.data;
+
+      // checks whether the course with given courseId exists
+      const courseExists = await coursesDAO.doesCourseExist(courseId);
+      if (!courseExists.exists) {
+        return res
+          .status(403)
+          .send(`Course with id: ${courseId}, doesn't exist`);
+      }
+
+      // checks whether the instructor is creator of the course or has admin privileges
+      const isCreator = await coursesDAO.isCreator(
+        courseId as string,
+        req.body.userData.userId as string,
+      );
+
+      if (isAdmin(req.body.isAuth, req.body.userData) || isCreator) {
+        await coursesDAO.dropStudents(courseId);
+        return res
+          .status(200)
+          .send("dropped students from the course successfully");
+      }
+
+      return res
+        .status(403)
+        .send(
+          "instructor hasn't the permission to drop students of this course",
+        );
+    } catch (error) {
+      console.error(`Failed at CourseController/dropStudents. error: ${error}`);
+      throw error;
+    }
   }
 
   static async dropStudent() {

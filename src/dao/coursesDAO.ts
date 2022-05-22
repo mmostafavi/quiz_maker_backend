@@ -1,15 +1,17 @@
-import { MongoClient, Collection, Db } from "mongodb";
+import { MongoClient, Collection, Db, ObjectId } from "mongodb";
 import _ from "lodash";
 import bcrypt from "bcryptjs";
 import { Course } from "../interfaces";
 
 let quizMakerDb: Db;
 let coursesCollection: Collection;
+let studentsCollection: Collection;
 
 export default class CoursesDAO {
   static async injectDB(client: MongoClient) {
     quizMakerDb = await client.db("quiz_maker");
     coursesCollection = await quizMakerDb.collection("courses");
+    studentsCollection = await quizMakerDb.collection("students");
   }
 
   static async doesCourseExist(courseId: string) {
@@ -63,7 +65,41 @@ export default class CoursesDAO {
     try {
       await coursesCollection.updateOne({ courseId }, { $set: { name } });
     } catch (error) {
-      console.error(`Failed at CoursesDAO/editCourse. error: ${error}`);
+      console.error(`Failed at CoursesDAO/editName. error: ${error}`);
+      throw error;
+    }
+  }
+
+  static async dropStudents(courseId: string) {
+    try {
+      const fetchedCourse = await coursesCollection.findOne({ courseId });
+
+      if (_.isNil(fetchedCourse)) {
+        throw new Error(`Course does not exist`);
+      }
+
+      const transformedStudentIds: ObjectId[] = fetchedCourse.students.map(
+        (studentId: string) => new ObjectId(studentId),
+      );
+      console.log(
+        "🚀 ~ file: coursesDAO.ts ~ line 86 ~ CoursesDAO ~ dropStudents ~ transformedStudentIds",
+        transformedStudentIds,
+      );
+
+      // updating students' course field
+      await studentsCollection.updateMany(
+        { _id: { $in: transformedStudentIds } },
+        // @ts-ignore
+        { $pull: { courses: fetchedCourse._id.toString() } },
+      );
+
+      // updating course's students field
+      await coursesCollection.updateOne(
+        { courseId },
+        { $set: { students: [] } },
+      );
+    } catch (error) {
+      console.error(`Failed at CoursesDAO/dropStudents. error: ${error}`);
       throw error;
     }
   }
