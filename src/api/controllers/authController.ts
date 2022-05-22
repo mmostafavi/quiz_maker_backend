@@ -75,16 +75,8 @@ export default class AuthControllers {
 
       if (
         !(
-          isInstructor(
-            req.body.isAuth,
-            req.body.userData,
-            req.body.data.instructorUsername,
-          ) ||
-          isAdmin(
-            req.body.isAuth,
-            req.body.userData,
-            req.body.data.instructorUsername,
-          )
+          isInstructor(req.body.isAuth, req.body.userData) ||
+          isAdmin(req.body.isAuth, req.body.userData)
         )
       ) {
         return res
@@ -184,13 +176,7 @@ export default class AuthControllers {
       // *: validation for signing up
       // ----------------------------------------------------------
 
-      if (
-        !isAdmin(
-          req.body.isAuth,
-          req.body.userData,
-          req.body.data.adminUsername,
-        )
-      ) {
+      if (!isAdmin(req.body.isAuth, req.body.userData)) {
         return res
           .status(403)
           .send("this user doesn't have permission for creating an instructor");

@@ -23,6 +23,7 @@ export interface Module {
 
 export interface Course {
   courseId: string;
+  password: string;
   name: string;
   logo: string;
   instructor: string;

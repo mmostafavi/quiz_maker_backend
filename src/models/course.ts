@@ -6,6 +6,11 @@ const CourseSchema = new Schema({
     required: true,
   },
 
+  password: {
+    type: String,
+    required: true,
+  },
+
   name: {
     type: String,
     required: true,
