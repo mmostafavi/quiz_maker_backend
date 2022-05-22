@@ -103,4 +103,32 @@ export default class CoursesDAO {
       throw error;
     }
   }
+
+  static async dropStudent(courseId: string, studentId: string) {
+    try {
+      const fetchedCourse = await coursesCollection.findOne({ courseId });
+
+      if (_.isNil(fetchedCourse)) {
+        throw new Error(`Course does not exist`);
+      }
+
+      const transformedStudentId: ObjectId = new ObjectId(studentId);
+
+      // updating student's course field
+      await studentsCollection.updateOne(
+        { _id: transformedStudentId },
+        // @ts-ignore
+        { $pull: { courses: fetchedCourse._id.toString() } },
+      );
+
+      // updating course's students field
+      await coursesCollection.updateOne(
+        { courseId },
+        { $pull: { students: studentId } },
+      );
+    } catch (error) {
+      console.error(`Failed at CoursesDAO/dropStudent. error: ${error}`);
+      throw error;
+    }
+  }
 }
