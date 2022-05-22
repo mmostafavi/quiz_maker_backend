@@ -22,8 +22,11 @@ export interface Module {
 }
 
 export interface Course {
+  courseId: string;
   name: string;
+  logo: string;
   instructor: string;
+  students: string[];
   modules: Module[];
 }
 

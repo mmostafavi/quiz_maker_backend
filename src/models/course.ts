@@ -1,6 +1,11 @@
 import { Schema, model } from "mongoose";
 
 const CourseSchema = new Schema({
+  courseId: {
+    type: String,
+    required: true,
+  },
+
   name: {
     type: String,
     required: true,
@@ -21,6 +26,13 @@ const CourseSchema = new Schema({
         type: String,
         required: true,
       },
+    },
+  ],
+
+  students: [
+    {
+      type: Schema.Types.ObjectId,
+      required: true,
     },
   ],
 });

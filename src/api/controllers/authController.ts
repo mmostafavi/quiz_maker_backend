@@ -105,14 +105,14 @@ export default class AuthControllers {
 
       if (!studentExist.exists) {
         await studentsDAO.createStudent(username, password, fName, lName);
-        res.status(200).send(`student with username of ${username} created`);
-      } else {
-        res
-          .status(500)
-          .send(`Student with username of ${username} already exists`);
+        return res
+          .status(200)
+          .send(`student with username of ${username} created`);
       }
 
-      return null;
+      return res
+        .status(500)
+        .send(`Student with username of ${username} already exists`);
     } catch (error) {
       console.error(`Failed at studentSignUp. error: ${error}`);
       res.status(500).send(error);

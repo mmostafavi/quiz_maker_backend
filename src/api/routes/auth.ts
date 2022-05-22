@@ -1,6 +1,6 @@
 import express from "express";
 import AuthControllers from "../controllers/authController";
-// import DataController from "../controllers/dataController";
+
 const router = express.Router();
 
 router.route("/student/sign-in").post(AuthControllers.studentSignIn);
