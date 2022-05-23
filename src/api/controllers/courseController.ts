@@ -82,8 +82,54 @@ export default class CourseController {
     }
   }
 
-  static async editModules() {
-    // do sth
+  static async editModules(req: Request, res: Response) {
+    try {
+      if (
+        !(
+          isInstructor(req.body.isAuth, req.body.userData) ||
+          isAdmin(req.body.isAuth, req.body.userData)
+        )
+      ) {
+        return res
+          .status(403)
+          .send(
+            `This user does not have permission to edit modules in a Course`,
+          );
+      }
+      const { courseId, modules } = req.body.data;
+
+      // checks whether the course with given courseId exists
+      const courseExists = await coursesDAO.doesCourseExist(courseId);
+      if (!courseExists.exists) {
+        return res
+          .status(403)
+          .send(`Course with id: ${courseId}, doesn't exist`);
+      }
+
+      // checks whether the instructor is creator of the course or has admin privileges
+      const isCreator = await coursesDAO.isCreator(
+        courseId as string,
+        req.body.userData.userId as string,
+      );
+
+      if (isAdmin(req.body.isAuth, req.body.userData) || isCreator) {
+        // Module Validation
+        // *: Add modules validation here
+        // Module Validation
+
+        await coursesDAO.editModules(courseId, modules);
+        return res.status(200).send("course modules edited successfully");
+      }
+
+      return res
+        .status(403)
+        .send(
+          "instructor hasn't the permission to edit modules of this course'",
+        );
+    } catch (error) {
+      console.error(`Failed at CourseController/editModules. error: ${error}`);
+      throw error;
+    }
   }
 
   static async dropStudents(req: Request, res: Response) {

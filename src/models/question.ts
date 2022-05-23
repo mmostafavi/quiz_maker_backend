@@ -10,7 +10,7 @@ const QuestionSchema = new Schema({
     required: true,
   },
   module: {
-    type: String,
+    type: Number,
     required: true,
   },
 });

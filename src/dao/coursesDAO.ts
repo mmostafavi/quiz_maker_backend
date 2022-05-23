@@ -1,7 +1,7 @@
 import { MongoClient, Collection, Db, ObjectId } from "mongodb";
 import _ from "lodash";
 import bcrypt from "bcryptjs";
-import { Course } from "../interfaces";
+import { Course, Module } from "../interfaces";
 
 let quizMakerDb: Db;
 let coursesCollection: Collection;
@@ -81,10 +81,6 @@ export default class CoursesDAO {
       const transformedStudentIds: ObjectId[] = fetchedCourse.students.map(
         (studentId: string) => new ObjectId(studentId),
       );
-      console.log(
-        "🚀 ~ file: coursesDAO.ts ~ line 86 ~ CoursesDAO ~ dropStudents ~ transformedStudentIds",
-        transformedStudentIds,
-      );
 
       // updating students' course field
       await studentsCollection.updateMany(
@@ -136,15 +132,20 @@ export default class CoursesDAO {
     try {
       // drop students first
       await this.dropStudents(courseId);
-      console.log(
-        "🚀 ~ file: coursesDAO.ts ~ line 139 ~ CoursesDAO ~ deleteCourse ~ courseId",
-        courseId,
-      );
 
       // delete the course
       await coursesCollection.deleteOne({ courseId });
     } catch (error) {
       console.error(`Failed at CoursesDAO/deleteCourse. error: ${error}`);
+      throw error;
+    }
+  }
+
+  static async editModules(courseId: string, modules: Module[]) {
+    try {
+      await coursesCollection.updateOne({ courseId }, { $set: { modules } });
+    } catch (error) {
+      console.error(`Failed at CoursesDAO/editModules. error: ${error}`);
       throw error;
     }
   }
