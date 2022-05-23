@@ -131,4 +131,21 @@ export default class CoursesDAO {
       throw error;
     }
   }
+
+  static async deleteCourse(courseId: string) {
+    try {
+      // drop students first
+      await this.dropStudents(courseId);
+      console.log(
+        "🚀 ~ file: coursesDAO.ts ~ line 139 ~ CoursesDAO ~ deleteCourse ~ courseId",
+        courseId,
+      );
+
+      // delete the course
+      await coursesCollection.deleteOne({ courseId });
+    } catch (error) {
+      console.error(`Failed at CoursesDAO/deleteCourse. error: ${error}`);
+      throw error;
+    }
+  }
 }
