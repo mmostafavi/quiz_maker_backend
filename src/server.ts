@@ -4,6 +4,7 @@ import cors from "cors";
 
 import authRoutes from "./api/routes/auth";
 import courseRoutes from "./api/routes/course";
+import studentRoutes from "./api/routes/student";
 
 import authMiddleware from "../src/middlewares/auth";
 
@@ -15,7 +16,8 @@ app.use(express.json());
 app.use(authMiddleware);
 // app.options("*", (cors as (options: CorsOptions) => RequestHandler)());
 
-app.use("/course", courseRoutes);
 app.use("/auth", authRoutes);
+app.use("/course", courseRoutes);
+app.use("/student", studentRoutes);
 
 export default app;

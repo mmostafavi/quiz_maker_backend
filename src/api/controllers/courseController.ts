@@ -36,7 +36,9 @@ export default class CourseController {
       return res.status(200).send("course created successfully");
     } catch (error) {
       console.error(`Failed at CourseController/create. error: ${error}`);
-      throw error;
+      return res
+        .status(500)
+        .send(`Failed at CourseController/create. error: ${error}`);
     }
   }
 
@@ -78,7 +80,9 @@ export default class CourseController {
         .send("instructor hasn't the permission to rename this course'");
     } catch (error) {
       console.error(`Failed at CourseController/create. error: ${error}`);
-      throw error;
+      return res
+        .status(500)
+        .send(`Failed at CourseController/create. error: ${error}`);
     }
   }
 
@@ -128,7 +132,9 @@ export default class CourseController {
         );
     } catch (error) {
       console.error(`Failed at CourseController/editModules. error: ${error}`);
-      throw error;
+      return res
+        .status(500)
+        .send(`Failed at CourseController/editModules. error: ${error}`);
     }
   }
 
@@ -174,7 +180,9 @@ export default class CourseController {
         );
     } catch (error) {
       console.error(`Failed at CourseController/dropStudents. error: ${error}`);
-      throw error;
+      return res
+        .status(500)
+        .send(`Failed at CourseController/dropStudents. error: ${error}`);
     }
   }
 
@@ -220,7 +228,9 @@ export default class CourseController {
         );
     } catch (error) {
       console.error(`Failed at CourseController/dropStudent. error: ${error}`);
-      throw error;
+      return res
+        .status(500)
+        .send(`Failed at CourseController/dropStudent. error: ${error}`);
     }
   }
 
@@ -262,7 +272,9 @@ export default class CourseController {
         .send("instructor hasn't the permission to delete this course");
     } catch (error) {
       console.error(`Failed at CourseController/deleteCourse. error: ${error}`);
-      throw error;
+      return res
+        .status(500)
+        .send(`Failed at CourseController/deleteCourse. error: ${error}`);
     }
   }
 }

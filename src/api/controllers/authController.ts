@@ -20,46 +20,45 @@ export default class AuthControllers {
       const studentExist = await studentsDAO.doesStudentExist(username);
 
       if (!studentExist.exists) {
-        res
+        return res
           .status(403)
           .send(`student with username '${username}' does not exist`);
-      } else {
-        const isPasswordCorrect = await bcrypt.compare(
-          password,
-          studentExist.student!.authData.password,
+      }
+
+      const isPasswordCorrect = await bcrypt.compare(
+        password,
+        studentExist.student!.authData.password,
+      );
+
+      if (isPasswordCorrect) {
+        const token = jwt.sign(
+          {
+            userType: "student",
+            username,
+            userId: studentExist.student!._id.toString(),
+            fName: studentExist.student!.fName,
+            lName: studentExist.student!.lName,
+          },
+          process.env.JWT_KEY!,
+          {
+            expiresIn: "1h",
+          },
         );
 
-        if (isPasswordCorrect) {
-          const token = jwt.sign(
-            {
-              userType: "student",
-              username,
-              userId: studentExist.student!._id.toString(),
-              fName: studentExist.student!.fName,
-              lName: studentExist.student!.lName,
-            },
-            process.env.JWT_KEY!,
-            {
-              expiresIn: "1h",
-            },
-          );
-
-          res.json({
-            ...studentExist.student!,
-            token,
-            authData: {
-              ...studentExist.student!.authData,
-              password: null,
-            },
-          });
-        } else {
-          res.status(403).send(`password is incorrect`);
-        }
+        return res.json({
+          ...studentExist.student!,
+          token,
+          authData: {
+            ...studentExist.student!.authData,
+            password: null,
+          },
+        });
       }
+
+      return res.status(403).send(`password is incorrect`);
     } catch (err) {
       console.error(`Failed at studentSignIn. error: ${err}`);
-      res.status(500).send(err);
-      throw err;
+      return res.status(500).send(`Failed at studentSignIn. error: ${err}`);
     }
   }
 
@@ -107,8 +106,7 @@ export default class AuthControllers {
         .send(`Student with username of ${username} already exists`);
     } catch (error) {
       console.error(`Failed at studentSignUp. error: ${error}`);
-      res.status(500).send(error);
-      throw error;
+      return res.status(500).send(`Failed at studentSignUp. error: ${error}`);
     }
   }
 
@@ -127,46 +125,45 @@ export default class AuthControllers {
       );
 
       if (!instructorExists.exists) {
-        res
+        return res
           .status(403)
           .send(`instructor with username '${username}' does not exist`);
-      } else {
-        const isPasswordCorrect = await bcrypt.compare(
-          password,
-          instructorExists.instructor!.authData.password,
+      }
+
+      const isPasswordCorrect = await bcrypt.compare(
+        password,
+        instructorExists.instructor!.authData.password,
+      );
+
+      if (isPasswordCorrect) {
+        const token = jwt.sign(
+          {
+            userType: "instructor",
+            username,
+            userId: instructorExists.instructor!._id.toString(),
+            fName: instructorExists.instructor!.fName,
+            lName: instructorExists.instructor!.lName,
+          },
+          process.env.JWT_KEY!,
+          {
+            expiresIn: "1h",
+          },
         );
 
-        if (isPasswordCorrect) {
-          const token = jwt.sign(
-            {
-              userType: "instructor",
-              username,
-              userId: instructorExists.instructor!._id.toString(),
-              fName: instructorExists.instructor!.fName,
-              lName: instructorExists.instructor!.lName,
-            },
-            process.env.JWT_KEY!,
-            {
-              expiresIn: "1h",
-            },
-          );
-
-          res.json({
-            ...instructorExists.instructor!,
-            token,
-            authData: {
-              ...instructorExists.instructor!.authData,
-              password: null,
-            },
-          });
-        } else {
-          res.status(403).send(`password is incorrect`);
-        }
+        return res.json({
+          ...instructorExists.instructor!,
+          token,
+          authData: {
+            ...instructorExists.instructor!.authData,
+            password: null,
+          },
+        });
       }
+
+      return res.status(403).send(`password is incorrect`);
     } catch (err) {
       console.error(`Failed at InstructorSignIn. error: ${err}`);
-      res.status(500).send(err);
-      throw err;
+      return res.status(500).send(`Failed at InstructorSignIn. error: ${err}`);
     }
   }
 
@@ -197,18 +194,18 @@ export default class AuthControllers {
 
       if (!instructorExists.exists) {
         await InstructorsDAO.createInstructor(username, password, fName, lName);
-        res.status(200).send(`instructor with username of ${username} created`);
-      } else {
-        res
-          .status(500)
-          .send(`instructor with username of ${username} already exists`);
+        return res
+          .status(200)
+          .send(`instructor with username of ${username} created`);
       }
-
-      return null;
+      return res
+        .status(500)
+        .send(`instructor with username of ${username} already exists`);
     } catch (error) {
       console.error(`Failed at instructorSignup. error: ${error}`);
-      res.status(500).send(error);
-      throw error;
+      return res
+        .status(500)
+        .send(`Failed at instructorSignup. error: ${error}`);
     }
   }
 
@@ -227,10 +224,12 @@ export default class AuthControllers {
       );
 
       if (!instructorExists.exists) {
-        res
+        return res
           .status(403)
           .send(`Admin with username '${username}' does not exist`);
-      } else if (username === process.env.admin_username) {
+      }
+
+      if (username === process.env.admin_username) {
         const isPasswordCorrect = await bcrypt.compare(
           password,
           instructorExists.instructor!.authData.password,
@@ -251,7 +250,7 @@ export default class AuthControllers {
             },
           );
 
-          res.json({
+          return res.json({
             ...instructorExists.instructor!,
             token,
             authData: {
@@ -259,16 +258,14 @@ export default class AuthControllers {
               password: null,
             },
           });
-        } else {
-          res.status(403).send(`password is incorrect`);
         }
-      } else {
-        res.status(403).send(`User is not admin`);
+        return res.status(403).send(`password is incorrect`);
       }
+
+      return res.status(403).send(`User is not admin`);
     } catch (err) {
       console.error(`Failed at AdminSignIn. error: ${err}`);
-      res.status(500).send(err);
-      throw err;
+      return res.status(500).send(`Failed at AdminSignIn. error: ${err}`);
     }
   }
 }
