@@ -1,6 +1,7 @@
-import { MongoClient, Db, Collection } from "mongodb";
+import { MongoClient, Db, Collection, ObjectId } from "mongodb";
 import _ from "lodash";
 import bcrypt from "bcryptjs";
+import CoursesDAO from "./coursesDAO";
 import { Student } from "../interfaces";
 
 let quizMakerDb: Db;
@@ -47,6 +48,20 @@ export default class StudentsDAO {
       await studentsCollection.insertOne(studentDoc);
     } catch (error) {
       console.error(`Failed to create student in createStudent: ${error}`);
+      throw error;
+    }
+  }
+
+  static async addToCourse(courseId: string, studentId: string) {
+    try {
+      await CoursesDAO.addStudent(courseId, studentId);
+      const fetchedCourse = await CoursesDAO.getCourseByCourseId(courseId);
+      await studentsCollection.updateOne(
+        { _id: new ObjectId(studentId) },
+        { $addToSet: { courses: fetchedCourse._id.toString() } },
+      );
+    } catch (error) {
+      console.error(`Failed at joinToCourse: ${error}`);
       throw error;
     }
   }

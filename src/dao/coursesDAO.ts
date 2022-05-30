@@ -14,6 +14,23 @@ export default class CoursesDAO {
     studentsCollection = await quizMakerDb.collection("students");
   }
 
+  static async getCourseByCourseId(courseId: string) {
+    try {
+      const fetchedCourse = await coursesCollection.findOne({ courseId });
+
+      if (_.isNil(fetchedCourse)) {
+        throw new Error("Course not found");
+      }
+
+      return fetchedCourse;
+    } catch (error) {
+      console.error(
+        `Failed at CoursesDAO/getCourseByCourseId. error: ${error}`,
+      );
+      throw error;
+    }
+  }
+
   static async doesCourseExist(courseId: string) {
     const fetchedCourse = await coursesCollection.findOne({ courseId });
 
@@ -31,6 +48,51 @@ export default class CoursesDAO {
       return fetchedCourse.instructor === userId;
     } catch (error) {
       console.error(error);
+      throw error;
+    }
+  }
+
+  static async isStudentAMember(courseId: string, userId: string) {
+    try {
+      const fetchedCourse = await coursesCollection.findOne({ courseId });
+
+      if (_.isNil(fetchedCourse)) {
+        throw new Error(`Course ${courseId} does not exist`);
+      }
+
+      if (fetchedCourse.students.includes(userId)) {
+        return {
+          result: true,
+          payload: fetchedCourse,
+        };
+      }
+
+      return {
+        result: false,
+        payload: fetchedCourse,
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  static async isPasswordCorrect(courseId: string, password: string) {
+    try {
+      const fetchedCourse = await coursesCollection.findOne({ courseId });
+
+      if (_.isNil(fetchedCourse)) {
+        throw Error("Course not found");
+      }
+
+      const isPasswordCorrect = await bcrypt.compare(
+        password,
+        fetchedCourse.password,
+      );
+
+      return isPasswordCorrect;
+    } catch (error) {
+      console.error(`Failed at coursesDAO/isPasswordCorrect. Error: ${error}`);
       throw error;
     }
   }
@@ -108,6 +170,13 @@ export default class CoursesDAO {
         throw new Error(`Course does not exist`);
       }
 
+      const isStudentAMember = await this.isStudentAMember(courseId, studentId);
+      if (!isStudentAMember.result) {
+        throw new Error(
+          `student with id ${studentId} isn't a member of course with id ${courseId}`,
+        );
+      }
+
       const transformedStudentId: ObjectId = new ObjectId(studentId);
 
       // updating student's course field
@@ -146,6 +215,26 @@ export default class CoursesDAO {
       await coursesCollection.updateOne({ courseId }, { $set: { modules } });
     } catch (error) {
       console.error(`Failed at CoursesDAO/editModules. error: ${error}`);
+      throw error;
+    }
+  }
+
+  static async addStudent(courseId: string, studentId: string) {
+    try {
+      const isStudentAMember = await this.isStudentAMember(courseId, studentId);
+
+      if (isStudentAMember.result) {
+        throw new Error(
+          `student with id ${studentId} already is joined to the course with id ${courseId}`,
+        );
+      }
+
+      await coursesCollection.updateOne(
+        { courseId },
+        { $push: { students: studentId } },
+      );
+    } catch (error) {
+      console.error(`Failed at CoursesDAO/addStudent. error: ${error}`);
       throw error;
     }
   }
