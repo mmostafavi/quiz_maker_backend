@@ -33,6 +33,13 @@ export interface Course {
 
 export interface Question {
   title: string;
-  course: string;
-  module: string;
+  body?: string;
+  answer: string;
+  studentId: string;
+  courseId: string;
+  moduleId: number;
+  usage: {
+    count: number;
+    exams: string[];
+  };
 }

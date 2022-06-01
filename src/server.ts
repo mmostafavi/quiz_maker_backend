@@ -5,6 +5,7 @@ import cors from "cors";
 import authRoutes from "./api/routes/auth";
 import courseRoutes from "./api/routes/course";
 import studentRoutes from "./api/routes/student";
+// import questionRoutes from "./api/routes/question";
 
 import authMiddleware from "../src/middlewares/auth";
 
@@ -19,5 +20,6 @@ app.use(authMiddleware);
 app.use("/auth", authRoutes);
 app.use("/course", courseRoutes);
 app.use("/student", studentRoutes);
+// app.use("/question", questionRoutes);
 
 export default app;

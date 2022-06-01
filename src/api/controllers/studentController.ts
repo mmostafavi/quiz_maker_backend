@@ -1,6 +1,7 @@
 // import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import CoursesDAO from "../../dao/coursesDAO";
+import QuestionsDAO from "../../dao/questionsDAO";
 import StudentsDAO from "../../dao/studentsDAO";
 // import InstructorsDAO from "../../dao/instructorsDAO";
 // import coursesDAO from "../../dao/coursesDAO";
@@ -41,12 +42,62 @@ export default class CourseController {
       await StudentsDAO.addToCourse(courseId, studentId);
       return res
         .status(200)
-        .send(`Student Successfully joined the course with id of ${studentId}`);
+        .send(`Student Successfully joined the course with id of ${courseId}`);
     } catch (error) {
       console.error(`Failed at CourseController/joinCourse. error: ${error}`);
       return res
         .status(500)
         .send(`Failed at CourseController/joinCourse. error: ${error}`);
+    }
+  }
+
+  static async submitQuestion(req: Request, res: Response) {
+    try {
+      if (
+        !(
+          isStudent(req.body.isAuth, req.body.userData) ||
+          isAdmin(req.body.isAuth, req.body.userData)
+        )
+      ) {
+        return res
+          .status(403)
+          .send(
+            `This user does not have permission to perform "submitQuestion"`,
+          );
+      }
+
+      const { studentId, courseId, moduleId, question } = req.body.data;
+
+      const courseExists = await CoursesDAO.doesCourseExist(courseId);
+      if (!courseExists.exists) {
+        return res.status(403).send("Course not found");
+      }
+
+      const studentExists = await StudentsDAO.doesStudentExistByID(studentId);
+      if (!studentExists.exists) {
+        return res.status(403).send("Student not found");
+      }
+
+      if (req.body.userData.userId !== studentId) {
+        throw new Error(
+          `A student cannot add a question on behalf of an another student.`,
+        );
+      }
+
+      await QuestionsDAO.submitQuestion(
+        courseExists.course!._id.toString(),
+        studentId,
+        moduleId,
+        question,
+      );
+      return res.status(200).send(`Question submitted successfully`);
+    } catch (error) {
+      console.error(
+        `Failed at CourseController/submitQuestion. error: ${error}`,
+      );
+      return res
+        .status(500)
+        .send(`Failed at CourseController/submitQuestion. error: ${error}`);
     }
   }
 }

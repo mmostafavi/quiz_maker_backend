@@ -30,6 +30,19 @@ export default class StudentsDAO {
     }
   }
 
+  static async doesStudentExistByID(id: string) {
+    try {
+      const fetchedStudent = await studentsCollection.findOne({
+        _id: new ObjectId(id),
+      });
+
+      return { exists: !_.isNil(fetchedStudent), student: fetchedStudent };
+    } catch (error) {
+      console.error(`Failed at doesStudentExist: ${error}`);
+      throw error;
+    }
+  }
+
   static async createStudent(
     username: string,
     password: string,
