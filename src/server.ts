@@ -7,7 +7,7 @@ import courseRoutes from "./api/routes/course";
 import studentRoutes from "./api/routes/student";
 // import questionRoutes from "./api/routes/question";
 
-import authMiddleware from "../src/middlewares/auth";
+import authMiddleware from "./middlewares/auth";
 
 const app = express();
 app.use(cors());
