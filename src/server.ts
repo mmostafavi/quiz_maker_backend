@@ -15,7 +15,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use(authMiddleware);
-// app.options("*", (cors as (options: CorsOptions) => RequestHandler)());
+// @ts-ignore
+app.options("*", cors());
 
 app.use("/auth", authRoutes);
 app.use("/course", courseRoutes);
