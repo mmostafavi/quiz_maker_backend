@@ -1,3 +1,9 @@
+import { ObjectId } from "mongodb";
+
+export type WithId<T extends {}> = T & {
+  _id: ObjectId;
+};
+
 export interface User {
   authData: {
     username: string;
@@ -23,7 +29,7 @@ export interface Module {
 
 export interface Course {
   courseId: string;
-  password: string;
+  password: string | null;
   name: string;
   logo: string;
   instructor: string;

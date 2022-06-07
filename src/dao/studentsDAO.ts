@@ -43,6 +43,29 @@ export default class StudentsDAO {
     }
   }
 
+  static async getStudentsById(ids: string[]) {
+    try {
+      const transformedIds = ids.map((id) => new ObjectId(id));
+      const fetchedStudents = await studentsCollection
+        .find({
+          _id: { $in: transformedIds },
+        })
+        .map((doc) => ({
+          ...doc,
+          authData: {
+            ...doc.authData,
+            password: null,
+          },
+        }))
+        .toArray();
+
+      return fetchedStudents;
+    } catch (error) {
+      console.error(`Failed at getStudentById: ${error}`);
+      throw error;
+    }
+  }
+
   static async createStudent(
     username: string,
     password: string,

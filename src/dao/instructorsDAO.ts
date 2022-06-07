@@ -1,4 +1,4 @@
-import { MongoClient, Collection, Db } from "mongodb";
+import { MongoClient, Collection, Db, ObjectId } from "mongodb";
 import _ from "lodash";
 import bcrypt from "bcryptjs";
 import { Instructor } from "../interfaces";
@@ -27,6 +27,30 @@ export default class InstructorsDAO {
       return { exists: false };
     } catch (error) {
       console.error(`Failed at doesInstructorExist. error: ${error}`);
+      throw error;
+    }
+  }
+
+  static async getInstructorById(id: string) {
+    try {
+      const instructorId = new ObjectId(id);
+      const fetchedInstructor = await instructorsCollection.findOne({
+        _id: instructorId,
+      });
+
+      if (_.isNil(fetchedInstructor)) {
+        throw new Error(`Instructor with id ${id} not found`);
+      }
+
+      return {
+        ...fetchedInstructor,
+        authData: {
+          ...fetchedInstructor.authData,
+          password: null,
+        },
+      };
+    } catch (error) {
+      console.error(`Failed to get instructor in getInstructorById: ${error}`);
       throw error;
     }
   }

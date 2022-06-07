@@ -6,12 +6,14 @@ import { Course, Module } from "../interfaces";
 let quizMakerDb: Db;
 let coursesCollection: Collection;
 let studentsCollection: Collection;
+let instructorsCollection: Collection;
 
 export default class CoursesDAO {
   static async injectDB(client: MongoClient) {
     quizMakerDb = await client.db("quiz_maker");
     coursesCollection = await quizMakerDb.collection("courses");
     studentsCollection = await quizMakerDb.collection("students");
+    instructorsCollection = await quizMakerDb.collection("instructors");
   }
 
   static async getCourseByCourseId(courseId: string) {
@@ -97,6 +99,45 @@ export default class CoursesDAO {
     }
   }
 
+  static async getCourse(id: string) {
+    try {
+      const transformedId = new ObjectId(id);
+      const fetchedCourse = await coursesCollection.findOne({
+        _id: transformedId,
+      });
+
+      if (_.isNil(fetchedCourse)) {
+        throw Error("Course not found");
+      }
+
+      return {
+        ...fetchedCourse,
+        password: null,
+      };
+    } catch (error) {
+      console.error(`Failed at coursesDAO/isPasswordCorrect. Error: ${error}`);
+      throw error;
+    }
+  }
+
+  // static async getCourses(courseIds: string[]) {
+  //   try {
+  //     const fetchedCourse = await coursesCollection.find({ courseId });
+
+  //     if (_.isNil(fetchedCourse)) {
+  //       throw Error("Course not found");
+  //     }
+
+  //     return {
+  //       ...fetchedCourse,
+  //       password: null,
+  //     };
+  //   } catch (error) {
+  //     console.error(`Failed at coursesDAO/isPasswordCorrect. Error: ${error}`);
+  //     throw error;
+  //   }
+  // }
+
   static async createCourse(
     name: string,
     password: string,
@@ -116,7 +157,11 @@ export default class CoursesDAO {
         modules: [],
       };
 
-      await coursesCollection.insertOne(courseDoc);
+      const { insertedId } = await coursesCollection.insertOne(courseDoc);
+      await instructorsCollection.updateOne(
+        { _id: new ObjectId(instructor) },
+        { $addToSet: { courses: insertedId } },
+      );
     } catch (error) {
       console.error(`Failed at CoursesDAO/createCourse. Error: ${error}`);
       throw error;

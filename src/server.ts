@@ -5,6 +5,7 @@ import cors from "cors";
 import authRoutes from "./api/routes/auth";
 import courseRoutes from "./api/routes/course";
 import studentRoutes from "./api/routes/student";
+import dataRoutes from "./api/routes/data";
 // import questionRoutes from "./api/routes/question";
 
 import authMiddleware from "./middlewares/auth";
@@ -21,6 +22,7 @@ app.options("*", cors());
 app.use("/auth", authRoutes);
 app.use("/course", courseRoutes);
 app.use("/student", studentRoutes);
+app.use("/data", dataRoutes);
 // app.use("/question", questionRoutes);
 
 export default app;
