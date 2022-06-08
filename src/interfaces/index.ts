@@ -32,7 +32,7 @@ export interface Course {
   password: string | null;
   name: string;
   logo: string;
-  instructor: string;
+  instructor: ObjectId;
   students: string[];
   modules: Module[];
 }
@@ -41,11 +41,11 @@ export interface Question {
   title: string;
   body?: string;
   answer: string;
-  studentId: string;
-  courseId: string;
+  studentId: ObjectId;
+  courseId: ObjectId;
   moduleId: number;
   usage: {
     count: number;
-    exams: string[];
+    exams: ObjectId[];
   };
 }

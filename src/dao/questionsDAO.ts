@@ -45,8 +45,8 @@ export default class QuestionsDAO {
     try {
       const newQuestionDoc: Question = {
         ...question,
-        courseId,
-        studentId,
+        courseId: new ObjectId(courseId),
+        studentId: new ObjectId(studentId),
         moduleId,
         usage: {
           count: 0,

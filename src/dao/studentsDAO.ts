@@ -47,16 +47,16 @@ export default class StudentsDAO {
     try {
       const transformedIds = ids.map((id) => new ObjectId(id));
       const fetchedStudents = await studentsCollection
-        .find({
-          _id: { $in: transformedIds },
-        })
-        .map((doc) => ({
-          ...doc,
-          authData: {
-            ...doc.authData,
-            password: null,
+        .find(
+          {
+            _id: { $in: transformedIds },
           },
-        }))
+          {
+            projection: {
+              "authData.password": 0,
+            },
+          },
+        )
         .toArray();
 
       return fetchedStudents;
@@ -94,7 +94,7 @@ export default class StudentsDAO {
       const fetchedCourse = await CoursesDAO.getCourseByCourseId(courseId);
       await studentsCollection.updateOne(
         { _id: new ObjectId(studentId) },
-        { $addToSet: { courses: fetchedCourse._id.toString() } },
+        { $addToSet: { courses: fetchedCourse._id } },
       );
     } catch (error) {
       console.error(`Failed at joinToCourse: ${error}`);

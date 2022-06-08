@@ -7,6 +7,8 @@ let quizMakerDb: Db;
 let coursesCollection: Collection;
 let studentsCollection: Collection;
 let instructorsCollection: Collection;
+let questionsCollection: Collection;
+let examsCollection: Collection;
 
 export default class CoursesDAO {
   static async injectDB(client: MongoClient) {
@@ -14,6 +16,44 @@ export default class CoursesDAO {
     coursesCollection = await quizMakerDb.collection("courses");
     studentsCollection = await quizMakerDb.collection("students");
     instructorsCollection = await quizMakerDb.collection("instructors");
+    questionsCollection = await quizMakerDb.collection("questions");
+    examsCollection = await quizMakerDb.collection("exams");
+  }
+
+  static async getGeneralInfo() {
+    try {
+      const fetchedCourses = await coursesCollection
+        .aggregate([
+          {
+            $lookup: {
+              from: "instructors",
+              localField: "instructor",
+              foreignField: "_id",
+              as: "instructor",
+            },
+          },
+          {
+            $addFields: {
+              instructor: {
+                $arrayElemAt: ["$instructor", 0],
+              },
+            },
+          },
+          {
+            $project: {
+              "instructor.authData.password": 0,
+              password: 0,
+            },
+          },
+        ])
+        .toArray();
+
+      return fetchedCourses;
+    } catch (error) {
+      console.error(`Failed at CoursesDAO/getGeneralInfo. error: ${error}`);
+
+      throw error;
+    }
   }
 
   static async getCourseByCourseId(courseId: string) {
@@ -47,7 +87,7 @@ export default class CoursesDAO {
         throw Error("Course not found");
       }
 
-      return fetchedCourse.instructor === userId;
+      return fetchedCourse.instructor.toString() === userId;
     } catch (error) {
       console.error(error);
       throw error;
@@ -61,6 +101,11 @@ export default class CoursesDAO {
       if (_.isNil(fetchedCourse)) {
         throw new Error(`Course ${courseId} does not exist`);
       }
+
+      // stringifying student ids
+      fetchedCourse.students = fetchedCourse.students.map((student: ObjectId) =>
+        student.toString(),
+      );
 
       if (fetchedCourse.students.includes(userId)) {
         return {
@@ -102,41 +147,114 @@ export default class CoursesDAO {
   static async getCourse(id: string) {
     try {
       const transformedId = new ObjectId(id);
-      const fetchedCourse = await coursesCollection.findOne({
-        _id: transformedId,
-      });
 
-      if (_.isNil(fetchedCourse)) {
+      const fetchedCourse = await coursesCollection
+        .aggregate([
+          {
+            $match: {
+              _id: transformedId,
+            },
+          },
+          {
+            $lookup: {
+              from: "instructors",
+              foreignField: "_id",
+              localField: "instructor",
+              as: "instructor",
+            },
+          },
+          {
+            $lookup: {
+              from: "students",
+              foreignField: "_id",
+              localField: "students",
+              as: "students",
+            },
+          },
+
+          {
+            $addFields: {
+              instructor: {
+                $arrayElemAt: ["$instructor", 0],
+              },
+            },
+          },
+          {
+            $project: {
+              "instructor.authData.password": 0,
+              "students.authData.password": 0,
+              password: 0,
+            },
+          },
+        ])
+        .toArray();
+
+      if (_.isEmpty(fetchedCourse)) {
         throw Error("Course not found");
       }
 
-      return {
-        ...fetchedCourse,
-        password: null,
-      };
+      return fetchedCourse[0];
     } catch (error) {
-      console.error(`Failed at coursesDAO/isPasswordCorrect. Error: ${error}`);
+      console.error(`Failed at coursesDAO/getCourse. Error: ${error}`);
       throw error;
     }
   }
 
-  // static async getCourses(courseIds: string[]) {
-  //   try {
-  //     const fetchedCourse = await coursesCollection.find({ courseId });
+  static async getCourses(courseIds: string[]) {
+    try {
+      const transformedIds = courseIds.map(
+        (courseId) => new ObjectId(courseId),
+      );
 
-  //     if (_.isNil(fetchedCourse)) {
-  //       throw Error("Course not found");
-  //     }
+      const fetchedCourses = await coursesCollection
+        .aggregate([
+          {
+            $match: {
+              _id: {
+                $in: transformedIds,
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: "instructors",
+              foreignField: "_id",
+              localField: "instructor",
+              as: "instructor",
+            },
+          },
+          {
+            $lookup: {
+              from: "students",
+              foreignField: "_id",
+              localField: "students",
+              as: "students",
+            },
+          },
 
-  //     return {
-  //       ...fetchedCourse,
-  //       password: null,
-  //     };
-  //   } catch (error) {
-  //     console.error(`Failed at coursesDAO/isPasswordCorrect. Error: ${error}`);
-  //     throw error;
-  //   }
-  // }
+          {
+            $addFields: {
+              instructor: {
+                $arrayElemAt: ["$instructor", 0],
+              },
+            },
+          },
+          {
+            $project: {
+              "instructor.authData.password": 0,
+              "students.authData.password": 0,
+              password: 0,
+            },
+          },
+        ])
+        .toArray();
+
+      return fetchedCourses;
+    } catch (error) {
+      console.error(`Failed at coursesDAO/getCourses. Error: ${error}`);
+      throw error;
+    }
+  }
 
   static async createCourse(
     name: string,
@@ -152,7 +270,7 @@ export default class CoursesDAO {
         password: hashedPassword,
         name,
         logo,
-        instructor,
+        instructor: new ObjectId(instructor),
         students: [],
         modules: [],
       };
@@ -185,15 +303,11 @@ export default class CoursesDAO {
         throw new Error(`Course does not exist`);
       }
 
-      const transformedStudentIds: ObjectId[] = fetchedCourse.students.map(
-        (studentId: string) => new ObjectId(studentId),
-      );
-
       // updating students' course field
       await studentsCollection.updateMany(
-        { _id: { $in: transformedStudentIds } },
+        { _id: { $in: fetchedCourse.students } },
         // @ts-ignore
-        { $pull: { courses: fetchedCourse._id.toString() } },
+        { $pull: { courses: fetchedCourse._id } },
       );
 
       // updating course's students field
@@ -228,13 +342,13 @@ export default class CoursesDAO {
       await studentsCollection.updateOne(
         { _id: transformedStudentId },
         // @ts-ignore
-        { $pull: { courses: fetchedCourse._id.toString() } },
+        { $pull: { courses: fetchedCourse._id } },
       );
 
       // updating course's students field
       await coursesCollection.updateOne(
         { courseId },
-        { $pull: { students: studentId } },
+        { $pull: { students: transformedStudentId } },
       );
     } catch (error) {
       console.error(`Failed at CoursesDAO/dropStudent. error: ${error}`);
@@ -244,8 +358,35 @@ export default class CoursesDAO {
 
   static async deleteCourse(courseId: string) {
     try {
+      // fetching the course
+      const fetchedCourse = await this.doesCourseExist(courseId);
+
+      if (!fetchedCourse.exists) {
+        throw new Error(`Course ${courseId} does not exist`);
+      }
+
       // drop students first
       await this.dropStudents(courseId);
+
+      // pulling the course from instructor's courses
+      await instructorsCollection.updateOne(
+        { _id: fetchedCourse.course!.instructor },
+        {
+          $pull: {
+            courses: fetchedCourse.course!._id,
+          },
+        },
+      );
+
+      // deleting questions created for that course
+      await questionsCollection.deleteMany({
+        courseId: fetchedCourse.course!._id,
+      });
+
+      // deleting exams created for that course
+      await examsCollection.deleteMany({
+        courseId: fetchedCourse.course!._id,
+      });
 
       // delete the course
       await coursesCollection.deleteOne({ courseId });
@@ -276,7 +417,7 @@ export default class CoursesDAO {
 
       await coursesCollection.updateOne(
         { courseId },
-        { $push: { students: studentId } },
+        { $push: { students: new ObjectId(studentId) } },
       );
     } catch (error) {
       console.error(`Failed at CoursesDAO/addStudent. error: ${error}`);

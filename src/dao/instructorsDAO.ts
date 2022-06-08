@@ -34,21 +34,22 @@ export default class InstructorsDAO {
   static async getInstructorById(id: string) {
     try {
       const instructorId = new ObjectId(id);
-      const fetchedInstructor = await instructorsCollection.findOne({
-        _id: instructorId,
-      });
+      const fetchedInstructor = await instructorsCollection.findOne(
+        {
+          _id: instructorId,
+        },
+        {
+          projection: {
+            "authData.password": 0,
+          },
+        },
+      );
 
       if (_.isNil(fetchedInstructor)) {
         throw new Error(`Instructor with id ${id} not found`);
       }
 
-      return {
-        ...fetchedInstructor,
-        authData: {
-          ...fetchedInstructor.authData,
-          password: null,
-        },
-      };
+      return fetchedInstructor;
     } catch (error) {
       console.error(`Failed to get instructor in getInstructorById: ${error}`);
       throw error;
