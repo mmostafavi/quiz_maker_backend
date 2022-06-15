@@ -44,10 +44,10 @@ export default class CourseController {
         .status(200)
         .send(`Student Successfully joined the course with id of ${courseId}`);
     } catch (error) {
-      console.error(`Failed at CourseController/joinCourse. error: ${error}`);
+      console.error(`Failed at StudentController/joinCourse. error: ${error}`);
       return res
         .status(500)
-        .send(`Failed at CourseController/joinCourse. error: ${error}`);
+        .send(`Failed at StudentController/joinCourse. error: ${error}`);
     }
   }
 
@@ -93,11 +93,11 @@ export default class CourseController {
       return res.status(200).send(`Question submitted successfully`);
     } catch (error) {
       console.error(
-        `Failed at CourseController/submitQuestion. error: ${error}`,
+        `Failed at StudentController/submitQuestion. error: ${error}`,
       );
       return res
         .status(500)
-        .send(`Failed at CourseController/submitQuestion. error: ${error}`);
+        .send(`Failed at StudentController/submitQuestion. error: ${error}`);
     }
   }
 }

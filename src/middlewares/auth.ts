@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 
 export default function (req: Request, res: Response, next: NextFunction) {
   const authHeader = req.get("Authorization");
+
   if (!authHeader) {
     req.body.isAuth = false;
     return next();
@@ -20,6 +21,7 @@ export default function (req: Request, res: Response, next: NextFunction) {
   try {
     decodedToken = jwt.verify(token, process.env.JWT_KEY);
   } catch (err) {
+    console.error(err);
     req.body.isAuth = false;
     return next();
   }

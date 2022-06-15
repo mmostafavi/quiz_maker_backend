@@ -1,6 +1,7 @@
 // import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import CoursesDAO from "../../dao/coursesDAO";
+import StudentsDAO from "../../dao/studentsDAO";
 // import QuestionsDAO from "../../dao/questionsDAO";
 // import StudentsDAO from "../../dao/studentsDAO";
 // import InstructorsDAO from "../../dao/instructorsDAO";
@@ -44,8 +45,8 @@ export default class DataController {
         return res.status(403).send("user is not authorized");
       }
 
-      const { courseIds } = req.body.data;
-      const fetchedCourses = await CoursesDAO.getCourses(courseIds);
+      const { studentId } = req.body.data;
+      const fetchedCourses = await StudentsDAO.getCourses(studentId);
 
       return res.status(200).json(fetchedCourses);
     } catch (error) {

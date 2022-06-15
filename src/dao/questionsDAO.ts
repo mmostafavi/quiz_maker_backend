@@ -4,6 +4,7 @@ import _ from "lodash";
 // import CoursesDAO from './coursesDAO'
 // import StudentsDAO from './studentsDAO'
 import { Question } from "../interfaces";
+import StudentsDAO from "./studentsDAO";
 
 let quizMakerDb: Db;
 // let coursesCollection: Collection;
@@ -53,7 +54,12 @@ export default class QuestionsDAO {
           exams: [],
         },
       };
-      await questionsCollection.insertOne(newQuestionDoc);
+      const { insertedId } = await questionsCollection.insertOne(
+        newQuestionDoc,
+      );
+
+      // adding the question to students profile
+      await StudentsDAO.addQuestion(studentId, insertedId.toString());
     } catch (error) {
       console.error(`Failed at questionsDAO/submitQuestion. Error: ${error}`);
       throw error;

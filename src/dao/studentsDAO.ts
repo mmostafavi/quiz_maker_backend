@@ -17,6 +17,36 @@ export default class StudentsDAO {
     // do sth
   }
 
+  static async getCourses(studentId: string) {
+    try {
+      const transformedStudentId = new ObjectId(studentId);
+
+      const fetchedStudent = await studentsCollection.findOne(
+        { _id: transformedStudentId },
+        {
+          projection: {
+            courses: 1,
+          },
+        },
+      );
+
+      if (_.isNil(fetchedStudent)) {
+        throw new Error("Student is not found");
+      }
+
+      const fetchedCourseIds: string[] = fetchedStudent.courses.map(
+        (course: ObjectId) => course.toString(),
+      );
+
+      const fetchedCourses = await CoursesDAO.getCourses(fetchedCourseIds);
+
+      return fetchedCourses;
+    } catch (error) {
+      console.error(`Failed at studentsDAO/getCourses. Error: ${error}`);
+      throw error;
+    }
+  }
+
   static async doesStudentExist(username: string) {
     try {
       const fetchedStudent = await studentsCollection.findOne({
@@ -98,6 +128,18 @@ export default class StudentsDAO {
       );
     } catch (error) {
       console.error(`Failed at joinToCourse: ${error}`);
+      throw error;
+    }
+  }
+
+  static async addQuestion(studentId: string, questionId: string) {
+    try {
+      await studentsCollection.updateOne(
+        { _id: new ObjectId(studentId) },
+        { $addToSet: { questions: new ObjectId(questionId) } },
+      );
+    } catch (error) {
+      console.error(`Failed at addQuestion: ${error}`);
       throw error;
     }
   }
