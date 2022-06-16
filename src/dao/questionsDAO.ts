@@ -74,4 +74,28 @@ export default class QuestionsDAO {
       throw error;
     }
   }
+
+  static async getQuestionsOfStudentInCourse(
+    courseId: string,
+    studentId: string,
+  ) {
+    try {
+      const transformedCourseId = new ObjectId(courseId);
+      const transformedStudentId = new ObjectId(studentId);
+
+      const fetchedQuestions = await questionsCollection
+        .find({
+          studentId: transformedStudentId,
+          courseId: transformedCourseId,
+        })
+        .toArray();
+
+      return fetchedQuestions;
+    } catch (error) {
+      console.error(
+        `Failed at questionsDAO/getQuestionsOfStudentInCourse. Error: ${error}`,
+      );
+      throw error;
+    }
+  }
 }
