@@ -56,6 +56,34 @@ export default class InstructorsDAO {
     }
   }
 
+  static async addCourse(instructorId: string, courseId: string) {
+    try {
+      await instructorsCollection.updateOne(
+        { _id: new ObjectId(instructorId) },
+        { $addToSet: { courses: new ObjectId(courseId) } },
+      );
+    } catch (error) {
+      console.error(`Failed at InstructorsDAO/addCourse. Error: ${error}`);
+      throw error;
+    }
+  }
+
+  static async dropCourse(instructorId: string, courseId: string) {
+    try {
+      await instructorsCollection.updateOne(
+        { _id: new ObjectId(instructorId) },
+        {
+          $pull: {
+            courses: new ObjectId(courseId),
+          },
+        },
+      );
+    } catch (error) {
+      console.error(`Failed at InstructorsDAO/dropCourse. Error: ${error}`);
+      throw error;
+    }
+  }
+
   static async createInstructor(
     username: string,
     password: string,

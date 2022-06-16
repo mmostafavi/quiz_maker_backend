@@ -7,8 +7,6 @@ import { Question } from "../interfaces";
 import StudentsDAO from "./studentsDAO";
 
 let quizMakerDb: Db;
-// let coursesCollection: Collection;
-// let studentsCollection: Collection;
 let questionsCollection: Collection;
 
 export default class QuestionsDAO {
@@ -17,6 +15,17 @@ export default class QuestionsDAO {
     // coursesCollection = await quizMakerDb.collection("courses");
     // studentsCollection = await quizMakerDb.collection("students");
     questionsCollection = await quizMakerDb.collection("questions");
+  }
+
+  static async deleteByCourseId(courseId: string) {
+    try {
+      await questionsCollection.deleteMany({
+        courseId: new ObjectId(courseId),
+      });
+    } catch (error) {
+      console.error(`Failed at questionsDAO/deleteByCourseId. Error: ${error}`);
+      throw error;
+    }
   }
 
   static async getQuestionById(id: string) {

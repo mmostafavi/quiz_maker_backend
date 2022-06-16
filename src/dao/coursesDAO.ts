@@ -3,21 +3,18 @@ import _ from "lodash";
 import bcrypt from "bcryptjs";
 import { Course, Module } from "../interfaces";
 
+import StudentsDAO from "./studentsDAO";
+import ExamsDAO from "./examsDAO";
+import QuestionsDAO from "./questionsDAO";
+import InstructorsDAO from "./instructorsDAO";
+
 let quizMakerDb: Db;
 let coursesCollection: Collection;
-let studentsCollection: Collection;
-let instructorsCollection: Collection;
-let questionsCollection: Collection;
-let examsCollection: Collection;
 
 export default class CoursesDAO {
   static async injectDB(client: MongoClient) {
     quizMakerDb = await client.db("quiz_maker");
     coursesCollection = await quizMakerDb.collection("courses");
-    studentsCollection = await quizMakerDb.collection("students");
-    instructorsCollection = await quizMakerDb.collection("instructors");
-    questionsCollection = await quizMakerDb.collection("questions");
-    examsCollection = await quizMakerDb.collection("exams");
   }
 
   static async getGeneralInfo() {
@@ -276,10 +273,7 @@ export default class CoursesDAO {
       };
 
       const { insertedId } = await coursesCollection.insertOne(courseDoc);
-      await instructorsCollection.updateOne(
-        { _id: new ObjectId(instructor) },
-        { $addToSet: { courses: insertedId } },
-      );
+      await InstructorsDAO.addCourse(instructor, insertedId.toString());
     } catch (error) {
       console.error(`Failed at CoursesDAO/createCourse. Error: ${error}`);
       throw error;
@@ -303,11 +297,14 @@ export default class CoursesDAO {
         throw new Error(`Course does not exist`);
       }
 
+      const studentIds = fetchedCourse.students.map((stdObjId: ObjectId) =>
+        stdObjId.toString(),
+      );
+
       // updating students' course field
-      await studentsCollection.updateMany(
-        { _id: { $in: fetchedCourse.students } },
-        // @ts-ignore
-        { $pull: { courses: fetchedCourse._id } },
+      await StudentsDAO.dropCourseFromStudents(
+        studentIds,
+        fetchedCourse._id.toString(),
       );
 
       // updating course's students field
@@ -339,10 +336,9 @@ export default class CoursesDAO {
       const transformedStudentId: ObjectId = new ObjectId(studentId);
 
       // updating student's course field
-      await studentsCollection.updateOne(
-        { _id: transformedStudentId },
-        // @ts-ignore
-        { $pull: { courses: fetchedCourse._id } },
+      await StudentsDAO.dropCourseFromStudent(
+        studentId,
+        fetchedCourse._id.toString(),
       );
 
       // updating course's students field
@@ -369,24 +365,16 @@ export default class CoursesDAO {
       await this.dropStudents(courseId);
 
       // pulling the course from instructor's courses
-      await instructorsCollection.updateOne(
-        { _id: fetchedCourse.course!.instructor },
-        {
-          $pull: {
-            courses: fetchedCourse.course!._id,
-          },
-        },
+      await InstructorsDAO.dropCourse(
+        fetchedCourse.course!.instructor.toString(),
+        fetchedCourse.course!._id.toString(),
       );
 
       // deleting questions created for that course
-      await questionsCollection.deleteMany({
-        courseId: fetchedCourse.course!._id,
-      });
+      await QuestionsDAO.deleteByCourseId(fetchedCourse.course!._id.toString());
 
       // deleting exams created for that course
-      await examsCollection.deleteMany({
-        courseId: fetchedCourse.course!._id,
-      });
+      await ExamsDAO.deleteByCourseId(fetchedCourse.course!._id.toString());
 
       // delete the course
       await coursesCollection.deleteOne({ courseId });

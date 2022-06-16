@@ -3,6 +3,7 @@ import StudentsDAO from "./dao/studentsDAO";
 import CoursesDAO from "./dao/coursesDAO";
 import InstructorsDAO from "./dao/instructorsDAO";
 import QuestionsDAO from "./dao/questionsDAO";
+import ExamsDAO from "./dao/examsDAO";
 import app from "./server";
 
 const PORT = process.env.PORT || 8000;
@@ -20,6 +21,7 @@ MongoClient.connect(uri, { serverApi: ServerApiVersion.v1 })
     await CoursesDAO.injectDB(client);
     await StudentsDAO.injectDB(client);
     await QuestionsDAO.injectDB(client);
+    await ExamsDAO.injectDB(client);
     // *: inject client to DAOs here
 
     app.listen(PORT, () => {

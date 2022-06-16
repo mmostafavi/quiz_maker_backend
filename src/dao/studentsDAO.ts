@@ -96,6 +96,40 @@ export default class StudentsDAO {
     }
   }
 
+  static async dropCourseFromStudents(studentIds: string[], courseId: string) {
+    try {
+      const transformedStudentIds = studentIds.map(
+        (studentId) => new ObjectId(studentId),
+      );
+      const transformedCourseId = new ObjectId(courseId);
+
+      await studentsCollection.updateMany(
+        { _id: { $in: transformedStudentIds } },
+        // @ts-ignore
+        { $pull: { courses: transformedCourseId } },
+      );
+    } catch (error) {
+      console.error(`Failed at studentsDAO/dropCourseFromStudents: ${error}`);
+      throw error;
+    }
+  }
+
+  static async dropCourseFromStudent(studentId: string, courseId: string) {
+    try {
+      const transformedStudentId = new ObjectId(studentId);
+      const transformedCourseId = new ObjectId(courseId);
+
+      await studentsCollection.updateOne(
+        { _id: transformedStudentId },
+        // @ts-ignore
+        { $pull: { courses: transformedCourseId } },
+      );
+    } catch (error) {
+      console.error(`Failed at studentsDAO/dropCourseFromStudent: ${error}`);
+      throw error;
+    }
+  }
+
   static async createStudent(
     username: string,
     password: string,
