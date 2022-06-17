@@ -100,4 +100,47 @@ export default class CourseController {
         .send(`Failed at StudentController/submitQuestion. error: ${error}`);
     }
   }
+
+  static async deleteQuestion(req: Request, res: Response) {
+    try {
+      if (
+        !(
+          isStudent(req.body.isAuth, req.body.userData) ||
+          isAdmin(req.body.isAuth, req.body.userData)
+        )
+      ) {
+        return res
+          .status(403)
+          .send(`User does not have permission to delete this question`);
+      }
+
+      const { studentId, questionId } = req.body.data;
+
+      if (
+        !isAdmin(req.body.isAuth, req.body.userData) &&
+        req.body.userData.userId !== studentId
+      ) {
+        return res
+          .status(403)
+          .send(`User Cannot delete a question on behalf of another student`);
+      }
+
+      const ownershipCheckResult = await StudentsDAO.doesStudentOwnQuestionById(
+        studentId,
+        questionId,
+      );
+
+      if (!ownershipCheckResult) {
+        return res.status(403).send(`Student does not own the question`);
+      }
+
+      await StudentsDAO.deleteQuestion(studentId, questionId);
+      await QuestionsDAO.deleteByQuestionId(questionId);
+
+      return res.status(200).send(`Question Deleted successfully`);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).send(error);
+    }
+  }
 }

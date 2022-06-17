@@ -28,6 +28,19 @@ export default class QuestionsDAO {
     }
   }
 
+  static async deleteByQuestionId(questionId: string) {
+    try {
+      await questionsCollection.deleteOne({
+        _id: new ObjectId(questionId),
+      });
+    } catch (error) {
+      console.error(
+        `Failed at questionsDAO/deleteByQuestionId. Error: ${error}`,
+      );
+      throw error;
+    }
+  }
+
   static async getQuestionById(id: string) {
     try {
       const transformedId = new ObjectId(id);

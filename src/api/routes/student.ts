@@ -3,7 +3,9 @@ import StudentController from "../controllers/studentController";
 
 const router = express.Router();
 
-router.route("/join/course").post(StudentController.joinCourse);
-router.route("/submit/question").post(StudentController.submitQuestion);
+router.route("/course/join").post(StudentController.joinCourse);
+router.route("/question/submit").post(StudentController.submitQuestion);
+router.route("/question/delete").post(StudentController.deleteQuestion);
+// router.route("/question/edit").post(StudentController);
 
 export default router;

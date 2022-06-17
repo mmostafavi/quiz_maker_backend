@@ -73,6 +73,34 @@ export default class StudentsDAO {
     }
   }
 
+  static async doesStudentOwnQuestionById(
+    studentId: string,
+    questionId: string,
+  ) {
+    try {
+      const fetchedStudent = await this.doesStudentExistByID(studentId);
+
+      if (!fetchedStudent.exists) {
+        throw new Error(`Student with id ${studentId} does not exist`);
+      }
+
+      const checkingResult = fetchedStudent.student!.questions.find(
+        (questionObjectId: ObjectId) => questionObjectId.equals(questionId),
+      );
+
+      if (_.isNil(checkingResult)) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error(
+        `Failed at StudentsDAO/doesStudentOwnQuestionById. Error: ${error}`,
+      );
+      throw error;
+    }
+  }
+
   static async getStudentsById(ids: string[]) {
     try {
       const transformedIds = ids.map((id) => new ObjectId(id));
@@ -174,6 +202,18 @@ export default class StudentsDAO {
       );
     } catch (error) {
       console.error(`Failed at addQuestion: ${error}`);
+      throw error;
+    }
+  }
+
+  static async deleteQuestion(studentId: string, questionId: string) {
+    try {
+      await studentsCollection.updateOne(
+        { _id: new ObjectId(studentId) },
+        { $pull: { questions: new ObjectId(questionId) } },
+      );
+    } catch (error) {
+      console.error(`Failed at studentsDAO/deleteQuestion. Error: ${error}`);
       throw error;
     }
   }
