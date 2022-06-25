@@ -2,6 +2,7 @@ import { MongoClient, Collection, Db, ObjectId } from "mongodb";
 import _ from "lodash";
 import bcrypt from "bcryptjs";
 import { Instructor } from "../interfaces";
+import CoursesDAO from "./coursesDAO";
 
 let quizMakerDB: Db;
 let instructorsCollection: Collection;
@@ -52,6 +53,36 @@ export default class InstructorsDAO {
       return fetchedInstructor;
     } catch (error) {
       console.error(`Failed to get instructor in getInstructorById: ${error}`);
+      throw error;
+    }
+  }
+
+  static async getCourses(instructorId: string) {
+    try {
+      const transformedInstructorId = new ObjectId(instructorId);
+
+      const fetchedInstructor = await instructorsCollection.findOne(
+        { _id: transformedInstructorId },
+        {
+          projection: {
+            courses: 1,
+          },
+        },
+      );
+
+      if (_.isNil(fetchedInstructor)) {
+        throw new Error("Instructor is not found");
+      }
+
+      const fetchedCourseIds: string[] = fetchedInstructor.courses.map(
+        (course: ObjectId) => course.toString(),
+      );
+
+      const fetchedCourses = await CoursesDAO.getCourses(fetchedCourseIds);
+
+      return fetchedCourses;
+    } catch (error) {
+      console.error(`Failed at instructorDAO/getCourses. Error: ${error}`);
       throw error;
     }
   }
