@@ -19,7 +19,8 @@ export default class CourseController {
           .status(403)
           .send(`This user does not have permission to create a Course`);
       }
-      const { name, password, logo, instructorId, courseId } = req.body.data;
+      const { name, password, logo, instructorId, courseId, modules } =
+        req.body.data;
 
       const courseExists = await coursesDAO.doesCourseExist(courseId);
       if (courseExists.exists) {
@@ -32,6 +33,7 @@ export default class CourseController {
         logo,
         instructorId,
         courseId,
+        modules,
       );
       return res.status(200).send("course created successfully");
     } catch (error) {

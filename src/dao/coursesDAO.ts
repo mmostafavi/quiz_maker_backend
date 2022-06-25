@@ -259,6 +259,7 @@ export default class CoursesDAO {
     logo: string,
     instructor: string,
     courseId: string,
+    modules: Module[],
   ) {
     try {
       const hashedPassword = await bcrypt.hash(password, 12);
@@ -269,7 +270,7 @@ export default class CoursesDAO {
         logo,
         instructor: new ObjectId(instructor),
         students: [],
-        modules: [],
+        modules,
       };
 
       const { insertedId } = await coursesCollection.insertOne(courseDoc);
