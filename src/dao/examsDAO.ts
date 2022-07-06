@@ -15,6 +15,17 @@ export default class ExamsDAO {
     examsCollection = await quizMakerDb.collection("exams");
   }
 
+  static async createExam() {
+    try {
+      await examsCollection.insertOne({
+        // to be filled with stuff :/
+      });
+    } catch (error) {
+      console.error(`Failed at examsDAO/createExam. Error: ${error}`);
+      throw error;
+    }
+  }
+
   static async deleteByCourseId(courseId: string) {
     try {
       await examsCollection.deleteMany({
