@@ -5,9 +5,9 @@ import StudentsDAO from "../../dao/studentsDAO";
 import QuestionsDAO from "../../dao/questionsDAO";
 // import StudentsDAO from "../../dao/studentsDAO";
 import InstructorsDAO from "../../dao/instructorsDAO";
-// import isAdmin from "../../utils/validators/isAdmin";
-// import isInstructor from "../../utils/validators/isInstructor";
+import isAdmin from "../../utils/validators/isAdmin";
 import isStudent from "../../utils/validators/isStudent";
+import isInstructor from "../../utils/validators/isInstructor";
 
 export default class DataController {
   static async getCourse(req: Request, res: Response) {
@@ -51,7 +51,7 @@ export default class DataController {
 
   static async getInstructorCourses(req: Request, res: Response) {
     try {
-      if (!req.body.isAuth) {
+      if (!isInstructor(req.body.isAuth, req.body.userData)) {
         return res.status(403).send("user is not authorized");
       }
 
@@ -122,6 +122,34 @@ export default class DataController {
       return res
         .status(500)
         .send(`Failed at DataController/getStudentQuestions. error: ${error}`);
+    }
+  }
+
+  static async getCourseQuestions(req: Request, res: Response) {
+    try {
+      if (
+        !(
+          isInstructor(req.body.isAuth, req.body.userData) ||
+          isAdmin(req.body.isAuth, req.body.userData)
+        )
+      ) {
+        return res.status(403).send("user is not allowed to access this data");
+      }
+
+      const { courseId } = req.body.data;
+
+      const fetchedQuestions = await QuestionsDAO.getQuestionsByCourseId(
+        courseId,
+      );
+
+      return res.status(200).json(fetchedQuestions);
+    } catch (error) {
+      console.error(
+        `Failed at DataController/getCourseQuestions. error: ${error}`,
+      );
+      return res
+        .status(500)
+        .send(`Failed at DataController/getCourseQuestions. error: ${error}`);
     }
   }
 }

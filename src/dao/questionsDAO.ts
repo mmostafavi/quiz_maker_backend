@@ -11,10 +11,74 @@ let questionsCollection: Collection;
 
 export default class QuestionsDAO {
   static async injectDB(client: MongoClient) {
-    quizMakerDb = await client.db("quiz_maker");
-    // coursesCollection = await quizMakerDb.collection("courses");
-    // studentsCollection = await quizMakerDb.collection("students");
-    questionsCollection = await quizMakerDb.collection("questions");
+    try {
+      quizMakerDb = await client.db("quiz_maker");
+      questionsCollection = await quizMakerDb.collection("questions");
+    } catch (error) {
+      console.error(`Failed at questionsDAO/injectDB. Error: ${error}`);
+      throw error;
+    }
+  }
+
+  static async getQuestionsOfStudentInCourse(
+    courseId: string,
+    studentId: string,
+  ) {
+    try {
+      const transformedCourseId = new ObjectId(courseId);
+      const transformedStudentId = new ObjectId(studentId);
+
+      const fetchedQuestions = await questionsCollection
+        .find({
+          studentId: transformedStudentId,
+          courseId: transformedCourseId,
+        })
+        .toArray();
+
+      return fetchedQuestions;
+    } catch (error) {
+      console.error(
+        `Failed at questionsDAO/getQuestionsOfStudentInCourse. Error: ${error}`,
+      );
+      throw error;
+    }
+  }
+
+  static async getQuestionById(id: string) {
+    try {
+      const transformedId = new ObjectId(id);
+      const fetchedQuestion = await questionsCollection.findOne({
+        _id: transformedId,
+      });
+
+      if (_.isNil(fetchedQuestion)) {
+        throw new Error(`Question could not find`);
+      }
+
+      return fetchedQuestion;
+    } catch (error) {
+      console.error(`Failed at questionsDAO/getQuestionById. Error: ${error}`);
+      throw error;
+    }
+  }
+
+  static async getQuestionsByCourseId(courseId: string) {
+    try {
+      const transformedCourseId = new ObjectId(courseId);
+
+      const fetchedQuestions = await questionsCollection
+        .find({
+          courseId: transformedCourseId,
+        })
+        .toArray();
+
+      return fetchedQuestions;
+    } catch (error) {
+      console.error(
+        `Failed at questionsDAO/getQuestionsByCourseId. Error: ${error}`,
+      );
+      throw error;
+    }
   }
 
   static async deleteByCourseId(courseId: string) {
@@ -37,24 +101,6 @@ export default class QuestionsDAO {
       console.error(
         `Failed at questionsDAO/deleteByQuestionId. Error: ${error}`,
       );
-      throw error;
-    }
-  }
-
-  static async getQuestionById(id: string) {
-    try {
-      const transformedId = new ObjectId(id);
-      const fetchedQuestion = await questionsCollection.findOne({
-        _id: transformedId,
-      });
-
-      if (_.isNil(fetchedQuestion)) {
-        throw new Error(`Question could not find`);
-      }
-
-      return fetchedQuestion;
-    } catch (error) {
-      console.error(`Failed at questionsDAO/getQuestionById. Error: ${error}`);
       throw error;
     }
   }
@@ -84,30 +130,6 @@ export default class QuestionsDAO {
       await StudentsDAO.addQuestion(studentId, insertedId.toString());
     } catch (error) {
       console.error(`Failed at questionsDAO/submitQuestion. Error: ${error}`);
-      throw error;
-    }
-  }
-
-  static async getQuestionsOfStudentInCourse(
-    courseId: string,
-    studentId: string,
-  ) {
-    try {
-      const transformedCourseId = new ObjectId(courseId);
-      const transformedStudentId = new ObjectId(studentId);
-
-      const fetchedQuestions = await questionsCollection
-        .find({
-          studentId: transformedStudentId,
-          courseId: transformedCourseId,
-        })
-        .toArray();
-
-      return fetchedQuestions;
-    } catch (error) {
-      console.error(
-        `Failed at questionsDAO/getQuestionsOfStudentInCourse. Error: ${error}`,
-      );
       throw error;
     }
   }
