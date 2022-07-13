@@ -133,4 +133,67 @@ export default class QuestionsDAO {
       throw error;
     }
   }
+
+  static async getRandomQuestionsByModuleId(
+    courseId: string,
+    moduleId: number,
+    countInModule: number,
+  ) {
+    try {
+      const transformedCourseId = new ObjectId(courseId);
+
+      const fetchedQuestions = await questionsCollection
+        .aggregate([
+          {
+            $match: {
+              courseId: transformedCourseId,
+              moduleId,
+            },
+          },
+          {
+            $sample: {
+              size: countInModule,
+            },
+          },
+        ])
+        .toArray();
+
+      return fetchedQuestions;
+    } catch (error) {
+      console.error(
+        `Failed at questionsDAO/getRandomQuestionsByModuleId. Error: ${error}`,
+      );
+      throw error;
+    }
+  }
+
+  static async updateQuestionsUsedInExam(
+    questionIds: string[],
+    examId: string,
+  ) {
+    try {
+      const transformedQuestionIds = questionIds.map(
+        (questionId) => new ObjectId(questionId),
+      );
+
+      const transformedExamId = new ObjectId(examId);
+
+      await questionsCollection.updateMany(
+        {
+          _id: { $in: transformedQuestionIds },
+        },
+        {
+          $inc: { "usage.count": 1 },
+
+          // @ts-ignore
+          $addToSet: { "usage.exams": transformedExamId },
+        },
+      );
+    } catch (error) {
+      console.error(
+        `Failed at questionsDAO/updateQuestionsUsedInExam. Error: ${error}`,
+      );
+      throw error;
+    }
+  }
 }

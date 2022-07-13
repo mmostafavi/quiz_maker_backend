@@ -1,8 +1,6 @@
-// import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
-// import studentsDAO from "../../dao/studentsDAO";
-// import InstructorsDAO from "../../dao/instructorsDAO";
 import coursesDAO from "../../dao/coursesDAO";
+import ExamsDAO from "../../dao/examsDAO";
 import isAdmin from "../../utils/validators/isAdmin";
 import isInstructor from "../../utils/validators/isInstructor";
 
@@ -277,6 +275,61 @@ export default class CourseController {
       return res
         .status(500)
         .send(`Failed at CourseController/deleteCourse. error: ${error}`);
+    }
+  }
+
+  static async createExam(req: Request, res: Response) {
+    try {
+      if (
+        !(
+          isInstructor(req.body.isAuth, req.body.userData) ||
+          isAdmin(req.body.isAuth, req.body.userData)
+        )
+      ) {
+        return res
+          .status(403)
+          .send(`This user does not have permission to create a Exam`);
+      }
+
+      const {
+        courseId,
+        examData: {
+          name,
+          createdAt,
+          questions: { random, usageMode, count, modules },
+        },
+      } = req.body.data;
+
+      const courseExists = await coursesDAO.doesCourseExist(courseId);
+      if (!courseExists.exists) {
+        return res.status(403).send(`Course not found`);
+      }
+
+      let examMode = "random";
+      if (random !== true) {
+        if (usageMode !== "least-used" && usageMode !== "most-used") {
+          return res.status(404).send("Invalid usage mode");
+        }
+
+        examMode = usageMode;
+      }
+
+      await ExamsDAO.createExam(
+        courseExists.course!._id.toString(),
+        courseExists.course!.instructor.toString(),
+        name,
+        createdAt,
+        count,
+        modules,
+        examMode,
+      );
+
+      return res.status(200).send("exam created successfully");
+    } catch (error) {
+      console.error(`Failed at CourseController/createExam. error: ${error}`);
+      return res
+        .status(500)
+        .send(`Failed at CourseController/createExam. error: ${error}`);
     }
   }
 }

@@ -49,3 +49,16 @@ export interface Question {
     exams: ObjectId[];
   };
 }
+
+export interface ExamDocQuestion {
+  moduleId: number;
+  questions: ObjectId[];
+}
+
+export interface ExamDoc {
+  courseId: ObjectId;
+  name: string;
+  date: string;
+  instructorId: ObjectId;
+  questions: ExamDocQuestion[];
+}
