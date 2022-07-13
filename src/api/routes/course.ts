@@ -9,6 +9,7 @@ router.route("/drop/students").post(CourseControllers.dropStudents);
 router.route("/drop/student").post(CourseControllers.dropStudent);
 router.route("/delete/course").post(CourseControllers.deleteCourse);
 router.route("/create/exam").post(CourseControllers.createExam);
+router.route("/delete/exam").post(CourseControllers.deleteExam);
 router.route("/create").post(CourseControllers.create);
 
 export default router;

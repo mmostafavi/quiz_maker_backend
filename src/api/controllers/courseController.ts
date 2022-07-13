@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import coursesDAO from "../../dao/coursesDAO";
 import ExamsDAO from "../../dao/examsDAO";
+import QuestionsDAO from "../../dao/questionsDAO";
 import isAdmin from "../../utils/validators/isAdmin";
 import isInstructor from "../../utils/validators/isInstructor";
 
@@ -330,6 +331,44 @@ export default class CourseController {
       return res
         .status(500)
         .send(`Failed at CourseController/createExam. error: ${error}`);
+    }
+  }
+
+  static async deleteExam(req: Request, res: Response) {
+    try {
+      if (
+        !(
+          isInstructor(req.body.isAuth, req.body.userData) ||
+          isAdmin(req.body.isAuth, req.body.userData)
+        )
+      ) {
+        return res
+          .status(403)
+          .send(`This user does not have permission to create a Exam`);
+      }
+
+      const { examId } = req.body.data;
+
+      const fetchedExam = await ExamsDAO.getExam(examId);
+
+      const fetchedCourse = await coursesDAO.getCourseById(
+        fetchedExam.courseId.toString(),
+      );
+
+      if (req.body.userData.userId !== fetchedCourse.instructor.toString()) {
+        return res.status(403).send(`instructor is not owner of this course`);
+      }
+
+      await QuestionsDAO.updateQuestionsOfDeletedExam(examId);
+
+      await ExamsDAO.deleteByExamId(examId);
+
+      return res.status(200).send("exam deleted successfully");
+    } catch (error) {
+      console.error(`Failed at CourseController/deleteExam. error: ${error}`);
+      return res
+        .status(500)
+        .send(`Failed at CourseController/deleteExam. error: ${error}`);
     }
   }
 }

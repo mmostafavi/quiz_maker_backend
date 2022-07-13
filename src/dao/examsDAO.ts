@@ -1,5 +1,5 @@
 import { MongoClient, Collection, Db, ObjectId } from "mongodb";
-// import _ from "lodash";
+import _ from "lodash";
 // import bcrypt from "bcryptjs";
 // import CoursesDAO from './coursesDAO'
 import QuestionsDAO from "./questionsDAO";
@@ -12,8 +12,30 @@ let examsCollection: Collection;
 
 export default class ExamsDAO {
   static async injectDB(client: MongoClient) {
-    quizMakerDb = await client.db("quiz_maker");
-    examsCollection = await quizMakerDb.collection("exams");
+    try {
+      quizMakerDb = await client.db("quiz_maker");
+      examsCollection = await quizMakerDb.collection("exams");
+    } catch (error) {
+      console.error(`Failed to inject DB in ExamDAO/injectDB. error: ${error}`);
+      throw error;
+    }
+  }
+
+  static async getExam(examId: string) {
+    try {
+      const fetchedExam = await examsCollection.findOne({
+        _id: new ObjectId(examId),
+      });
+
+      if (_.isNil(fetchedExam)) {
+        throw new Error(`Could not find exam`);
+      }
+
+      return fetchedExam;
+    } catch (error) {
+      console.error(`Failed to inject DB in ExamDAO/getExam. error: ${error}`);
+      throw error;
+    }
   }
 
   static async createRandomExam(
@@ -304,6 +326,17 @@ export default class ExamsDAO {
       return fetchedExams;
     } catch (error) {
       console.error(`Failed at examsDAO/getCourseExams. Error: ${error}`);
+      throw error;
+    }
+  }
+
+  static async deleteByExamId(examId: string) {
+    try {
+      await examsCollection.deleteOne({
+        _id: new ObjectId(examId),
+      });
+    } catch (error) {
+      console.error(`Failed at examsDAO/deleteByExamId. Error: ${error}`);
       throw error;
     }
   }

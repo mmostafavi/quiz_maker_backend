@@ -70,6 +70,25 @@ export default class CoursesDAO {
     }
   }
 
+  static async getCourseById(id: string) {
+    try {
+      const fetchedCourse = await coursesCollection.findOne({
+        _id: new ObjectId(id),
+      });
+
+      if (_.isNil(fetchedCourse)) {
+        throw new Error("Course not found");
+      }
+
+      return fetchedCourse;
+    } catch (error) {
+      console.error(
+        `Failed at CoursesDAO/getCourseByCourseId. error: ${error}`,
+      );
+      throw error;
+    }
+  }
+
   static async doesCourseExist(courseId: string) {
     const fetchedCourse = await coursesCollection.findOne({ courseId });
 

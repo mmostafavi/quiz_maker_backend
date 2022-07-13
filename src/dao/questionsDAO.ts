@@ -196,4 +196,27 @@ export default class QuestionsDAO {
       throw error;
     }
   }
+
+  static async updateQuestionsOfDeletedExam(examId: string) {
+    try {
+      const transformedExamId = new ObjectId(examId);
+
+      await questionsCollection.updateMany(
+        {
+          "usage.exams": { $in: [transformedExamId] },
+        },
+        {
+          $inc: { "usage.count": -1 },
+
+          // @ts-ignore
+          $pull: { "usage.exams": transformedExamId },
+        },
+      );
+    } catch (error) {
+      console.error(
+        `Failed at questionsDAO/updateQuestionsOfDeletedExam. Error: ${error}`,
+      );
+      throw error;
+    }
+  }
 }
