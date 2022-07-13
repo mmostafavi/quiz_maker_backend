@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import CoursesDAO from "../../dao/coursesDAO";
 import StudentsDAO from "../../dao/studentsDAO";
 import QuestionsDAO from "../../dao/questionsDAO";
+import ExamsDAO from "../../dao/examsDAO";
 // import StudentsDAO from "../../dao/studentsDAO";
 import InstructorsDAO from "../../dao/instructorsDAO";
 import isAdmin from "../../utils/validators/isAdmin";
@@ -150,6 +151,38 @@ export default class DataController {
       return res
         .status(500)
         .send(`Failed at DataController/getCourseQuestions. error: ${error}`);
+    }
+  }
+
+  static async getCourseExams(req: Request, res: Response) {
+    try {
+      if (
+        !(
+          isInstructor(req.body.isAuth, req.body.userData) ||
+          isAdmin(req.body.isAuth, req.body.userData)
+        )
+      ) {
+        return res.status(403).send("user is not allowed to access this data");
+      }
+
+      const { courseId } = req.body.data;
+
+      const fetchedCourse = await CoursesDAO.getCourseByCourseId(courseId);
+
+      if (req.body.userData.userId !== fetchedCourse.instructor.toString()) {
+        throw new Error("Instructor isn't the owner of this course");
+      }
+
+      const fetchedExams = await ExamsDAO.getCourseExams(
+        fetchedCourse._id.toString(),
+      );
+
+      return res.status(200).json(fetchedExams);
+    } catch (error) {
+      console.error(`Failed at DataController/getCourseExams. error: ${error}`);
+      return res
+        .status(500)
+        .send(`Failed at DataController/getCourseExams. error: ${error}`);
     }
   }
 }

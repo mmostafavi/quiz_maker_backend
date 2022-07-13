@@ -281,6 +281,33 @@ export default class ExamsDAO {
     }
   }
 
+  static async getCourseExams(courseId: string) {
+    try {
+      const transformedCourseId = new ObjectId(courseId);
+      const fetchedExams = await examsCollection
+        .aggregate([
+          {
+            $match: { courseId: transformedCourseId },
+          },
+
+          {
+            $lookup: {
+              from: "questions",
+              localField: "questions.questions",
+              foreignField: "_id",
+              as: "questions",
+            },
+          },
+        ])
+        .toArray();
+
+      return fetchedExams;
+    } catch (error) {
+      console.error(`Failed at examsDAO/getCourseExams. Error: ${error}`);
+      throw error;
+    }
+  }
+
   static async deleteByCourseId(courseId: string) {
     try {
       await examsCollection.deleteMany({

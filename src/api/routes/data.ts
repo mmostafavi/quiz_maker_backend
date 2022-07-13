@@ -9,6 +9,7 @@ router.route("/general-info-courses").get(dataController.getGeneralInfo);
 router.route("/student/questions").post(dataController.getStudentQuestions);
 router.route("/course/questions").post(dataController.getCourseQuestions);
 router.route("/course").post(dataController.getCourse);
+router.route("/course/exams").post(dataController.getCourseExams);
 // router.route("/instructor");
 // router.route("/student");
 
